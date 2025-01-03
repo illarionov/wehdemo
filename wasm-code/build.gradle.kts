@@ -1,11 +1,35 @@
+@file:Suppress("OPT_IN_USAGE", "UnstableApiUsage")
+
+import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode.DEVELOPMENT
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+}
+
+/**
+ * Consumable configuration to provide the generated WASM binary artifacts to the chasm-runner module.
+ */
+val wasmBinaryConfiguration = configurations.consumable("wehdemoWasmBinaryElements") {
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named("wasm-runtime"))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("library"))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("wasm"))
+    }
 }
 
 kotlin {
     wasmWasi {
         nodejs()
-        binaries.executable()
+        binaries.executable().let { wasmBinaries ->
+            // Add generated WASM binary as outgoing artifact
+            wasmBinaryConfiguration.get().outgoing {
+                wasmBinaries.filter { it.mode == DEVELOPMENT }.forEach { binary ->
+                    val wasmFilename = binary.mainFileName.map { it.replaceAfterLast(".", "wasm") }
+                    val wasmFile = binary.linkTask.flatMap { it.destinationDirectory.file(wasmFilename) }
+                    artifact(wasmFile)
+                }
+            }
+        }
     }
 }
 

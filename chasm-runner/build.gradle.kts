@@ -1,7 +1,27 @@
-@file:Suppress("OPT_IN_USAGE")
+@file:Suppress("OPT_IN_USAGE", "UnstableApiUsage")
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+}
+
+// Configurations used to import WASM binary files from the wasm-code module
+configurations {
+    val wasmBinaries = dependencyScope("wasmBinary")
+    // Resolvable configuration used to import generated WASM binary
+    resolvable("wasmBinaryFiles") {
+        extendsFrom(wasmBinaries.get())
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named("wasm-runtime"))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named("library"))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("wasm"))
+        }
+    }
+}
+
+val wasmBinaryDir = layout.buildDirectory.dir("wasmBinary")
+val aggregateBinariesTask = tasks.register<Sync>("copyWasmBinaries") {
+    from(configurations.named("wasmBinaryFiles"))
+    into(wasmBinaryDir)
 }
 
 kotlin {
@@ -24,5 +44,15 @@ kotlin {
             implementation(libs.chasm)
             implementation(libs.weh.chasm.wasip1)
         }
+        jvmMain {
+            resources.srcDir(aggregateBinariesTask)
+        }
     }
 }
+
+dependencies {
+    add("wasmBinary", project(":wasm-code"))
+}
+
+
+
