@@ -1,11 +1,11 @@
 [versions]
 kotlin = "2.1.0"
 chasm = "0.9.2"
-wasi-emscripten-host = "0.1-alpha01-SNAPSHOT"
+wasi-emscripten-host = "0.1-alpha02-SNAPSHOT"
 
 [libraries]
 chasm = { group = "io.github.charlietap.chasm", name = "chasm", version.ref = "chasm" }
-wasi-emscripten-host = { group = "at.released.weh", name = "bindings-chasm-wasip1", version.ref = "wasi-emscripten-host" }
+weh-chasm-wasip1 = { group = "at.released.weh", name = "bindings-chasm-wasip1", version.ref = "wasi-emscripten-host" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
