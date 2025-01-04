@@ -1,5 +1,7 @@
 @file:Suppress("OPT_IN_USAGE", "UnstableApiUsage")
 
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
 }
@@ -20,6 +22,7 @@ configurations {
 
 val wasmBinaryDir = layout.buildDirectory.dir("wasmBinary")
 val aggregateBinariesTask = tasks.register<Sync>("copyWasmBinaries") {
+    description = "Gathers WASM binary files from dependencies into a single directory"
     from(configurations.named("wasmBinaryFiles"))
     into(wasmBinaryDir)
 }
@@ -27,7 +30,7 @@ val aggregateBinariesTask = tasks.register<Sync>("copyWasmBinaries") {
 kotlin {
     jvm {
         mainRun {
-            mainClass.set("at/released/weh/example/chasm/runner/WasmCodeRunnerKt")
+            mainClass.set("at/released/weh/example/chasm/runner/JvmMainKt")
         }
     }
     iosSimulatorArm64()
@@ -37,7 +40,23 @@ kotlin {
     linuxX64()
     macosArm64()
     macosX64()
-    mingwX64()
+
+//    mingw is not available with chasm 0.9.3, but it may work with 0.9.2
+//    mingwX64 {
+//        binaries.all { linkerOpts("-lntdll") }
+//    }
+
+    targets.withType<KotlinNativeTarget> {
+        binaries.executable {
+            entryPoint = "at.released.weh.example.chasm.runner.main"
+            runTask?.argumentProviders?.add(
+                NativeExecutableArgumentProvider(
+                    wasmBinary = wasmBinaryDir.map { it.file("wehdemo-wasm-code-wasm-wasi.wasm") },
+                    preopenedDirectory = provider { layout.projectDirectory }
+                )
+            )
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -47,6 +66,10 @@ kotlin {
         jvmMain {
             resources.srcDir(aggregateBinariesTask)
         }
+        nativeMain.dependencies {
+            // TODO: remove?
+            implementation(libs.kotlinx.io)
+        }
     }
 }
 
@@ -54,5 +77,12 @@ dependencies {
     add("wasmBinary", project(":wasm-code"))
 }
 
-
-
+private class NativeExecutableArgumentProvider(
+    private val wasmBinary: Provider<RegularFile>,
+    private val preopenedDirectory: Provider<Directory>
+) : CommandLineArgumentProvider {
+    override fun asArguments(): List<String> = listOf(
+        wasmBinary.get().asFile.absolutePath,
+        preopenedDirectory.get().asFile.absolutePath,
+    )
+}

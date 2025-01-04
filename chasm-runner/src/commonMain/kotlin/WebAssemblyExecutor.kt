@@ -12,28 +12,25 @@ import io.github.charlietap.chasm.embedding.shapes.Instance
 import io.github.charlietap.chasm.embedding.shapes.Store
 import io.github.charlietap.chasm.embedding.shapes.flatMap
 import io.github.charlietap.chasm.embedding.store
-import java.io.InputStream
 
-fun main() {
-    // Load WebAssembly binary
-    val wasmBinary: ByteArray = checkNotNull(
-        Thread.currentThread().contextClassLoader.getResource("wehdemo-wasm-code-wasm-wasi.wasm"),
-    ).openStream().use(InputStream::readAllBytes)
-
+internal fun executeWebAssemblyCode(
+    wasmBinary: ByteArray,
+    preopenedDirectoryRealPath: String = ".",
+) {
     // Setup Host and run code
     EmbedderHost.Builder()
         .apply {
             directories()
                 .addPreopenedDirectory(
-                    realPath = ".",
-                    virtualPath = "/preopen",
+                    realPath = preopenedDirectoryRealPath,
+                    virtualPath = "/preopened",
                 )
         }
         .build()
-        .use { embedderHost -> runWebAssemblyCode(embedderHost, wasmBinary) }
+        .use { embedderHost -> executeWebAssemblyCode(embedderHost, wasmBinary) }
 }
 
-private fun runWebAssemblyCode(
+private fun executeWebAssemblyCode(
     embedderHost: EmbedderHost,
     wasmBinary: ByteArray,
 ) {
