@@ -3,8 +3,10 @@ import kotlin.wasm.unsafe.Pointer
 import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
 import kotlin.wasm.unsafe.withScopedMemoryAllocator
 
-fun main() {
-    println("Hello from Kotlin via WASI")
+/**
+ * Example from [kotlin-wasm-wasi-template](https://github.com/Kotlin/kotlin-wasm-wasi-template/blob/094ba26f4cd8cbed94d050de542ce0edb656aa04/src/wasmWasiMain/kotlin/MonotonicTime.kt)
+ */
+internal fun monotonicTimeSample() {
     println("Current 'realtime' timestamp is: ${wasiRealTime()}")
     println("Current 'monotonic' timestamp is: ${wasiMonotonicTime()}")
 }
@@ -32,7 +34,3 @@ fun wasiGetTime(clockId: Int): Long = withScopedMemoryAllocator { allocator ->
 fun wasiRealTime(): Long = wasiGetTime(REALTIME)
 
 fun wasiMonotonicTime(): Long = wasiGetTime(MONOTONIC)
-
-// We need it to run WasmEdge with the _initialize function
-@WasmExport
-fun dummy() {}

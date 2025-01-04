@@ -1,6 +1,7 @@
 package at.released.weh.example.chasm.runner
 
 import at.released.weh.bindings.chasm.wasip1.ChasmWasiPreview1Builder
+import at.released.weh.common.api.Logger
 import at.released.weh.host.EmbedderHost
 import io.github.charlietap.chasm.embedding.error.ChasmError
 import io.github.charlietap.chasm.embedding.instance
@@ -16,18 +17,25 @@ import io.github.charlietap.chasm.embedding.store
 internal fun executeWebAssemblyCode(
     wasmBinary: ByteArray,
     preopenedDirectoryRealPath: String = ".",
+    debug: Boolean = false,
 ) {
-    // Setup Host and run code
+    // Setup Host
     EmbedderHost.Builder()
         .apply {
             directories()
                 .addPreopenedDirectory(
                     realPath = preopenedDirectoryRealPath,
-                    virtualPath = "/preopened",
+                    virtualPath = "/data",
                 )
+            if (debug) {
+                rootLogger = PrintlnLogger
+            }
         }
         .build()
-        .use { embedderHost -> executeWebAssemblyCode(embedderHost, wasmBinary) }
+        .use { embedderHost ->
+            // Execute code
+            executeWebAssemblyCode(embedderHost, wasmBinary)
+        }
 }
 
 private fun executeWebAssemblyCode(
@@ -48,7 +56,7 @@ private fun executeWebAssemblyCode(
 
     // Initialize environment and run main function
     invoke(store, instance, "_initialize")
-        .getOrThrow { "Can not initialize WebAssembly environment: $it" }
+        .getOrThrow { "Failed to run _initialize: $it" }
 }
 
 private fun <S, E : ChasmError> ChasmResult<S, E>.getOrThrow(
@@ -59,3 +67,19 @@ private fun <S, E : ChasmError> ChasmResult<S, E>.getOrThrow(
 }
 
 class WasmException(message: String) : RuntimeException(message)
+
+private object PrintlnLogger : Logger {
+    override fun v(throwable: Throwable?, message: () -> String) {
+        if (throwable != null) {
+            println("WEH: ${message()}. Exception: `$throwable`")
+        } else {
+            println("WEH: ${message()}")
+        }
+    }
+    override fun a(throwable: Throwable?, message: () -> String) = v(throwable, message)
+    override fun d(throwable: Throwable?, message: () -> String) = v(throwable, message)
+    override fun e(throwable: Throwable?, message: () -> String) = v(throwable, message)
+    override fun i(throwable: Throwable?, message: () -> String) = v(throwable, message)
+    override fun w(throwable: Throwable?, message: () -> String) = v(throwable, message)
+    override fun withTag(tag: String): Logger = this
+}

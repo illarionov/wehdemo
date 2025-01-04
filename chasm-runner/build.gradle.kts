@@ -20,7 +20,12 @@ configurations {
     }
 }
 
+val preopenedDirectory: Provider<Directory> = providers.environmentVariable("WASM_DATA")
+    .orElse("preopened_sample")
+    .map { layout.projectDirectory.dir(it) }
+
 val wasmBinaryDir = layout.buildDirectory.dir("wasmBinary")
+
 val aggregateBinariesTask = tasks.register<Sync>("copyWasmBinaries") {
     description = "Gathers WASM binary files from dependencies into a single directory"
     from(configurations.named("wasmBinaryFiles"))
@@ -30,7 +35,8 @@ val aggregateBinariesTask = tasks.register<Sync>("copyWasmBinaries") {
 kotlin {
     jvm {
         mainRun {
-            mainClass.set("at/released/weh/example/chasm/runner/JvmMainKt")
+            mainClass = "at.released.weh.example.chasm.runner.JvmMainKt"
+            args(preopenedDirectory.map { it.asFile.absolutePath }.get())
         }
     }
     iosSimulatorArm64()
@@ -40,11 +46,9 @@ kotlin {
     linuxX64()
     macosArm64()
     macosX64()
-
-//    mingw is not available with chasm 0.9.3, but it may work with 0.9.2
-//    mingwX64 {
-//        binaries.all { linkerOpts("-lntdll") }
-//    }
+    mingwX64 {
+        binaries.all { linkerOpts("-lntdll") }
+    }
 
     targets.withType<KotlinNativeTarget> {
         binaries.executable {
@@ -52,7 +56,7 @@ kotlin {
             runTask?.argumentProviders?.add(
                 NativeExecutableArgumentProvider(
                     wasmBinary = wasmBinaryDir.map { it.file("wehdemo-wasm-code-wasm-wasi.wasm") },
-                    preopenedDirectory = provider { layout.projectDirectory }
+                    preopenedDirectory = preopenedDirectory
                 )
             )
         }
@@ -67,7 +71,6 @@ kotlin {
             resources.srcDir(aggregateBinariesTask)
         }
         nativeMain.dependencies {
-            // TODO: remove?
             implementation(libs.kotlinx.io)
         }
     }
