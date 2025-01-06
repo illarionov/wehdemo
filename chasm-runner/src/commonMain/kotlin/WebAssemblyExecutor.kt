@@ -20,22 +20,20 @@ internal fun executeWebAssemblyCode(
     debug: Boolean = false,
 ) {
     // Setup Host
-    EmbedderHost.Builder()
-        .apply {
-            directories()
-                .addPreopenedDirectory(
-                    realPath = preopenedDirectoryRealPath,
-                    virtualPath = "/data",
-                )
-            if (debug) {
-                rootLogger = PrintlnLogger
-            }
+    EmbedderHost {
+        fileSystem {
+            addPreopenedDirectory(
+                realPath = preopenedDirectoryRealPath,
+                virtualPath = "/data",
+            )
         }
-        .build()
-        .use { embedderHost ->
-            // Execute code
-            executeWebAssemblyCode(embedderHost, wasmBinary)
+        if (debug) {
+            logger = PrintlnLogger
         }
+    }.use { embedderHost ->
+        // Execute code
+        executeWebAssemblyCode(embedderHost, wasmBinary)
+    }
 }
 
 private fun executeWebAssemblyCode(
