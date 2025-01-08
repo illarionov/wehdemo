@@ -56,8 +56,8 @@ kotlin {
             runTask?.argumentProviders?.add(
                 NativeExecutableArgumentProvider(
                     wasmBinary = wasmBinaryDir.map { it.file("wehdemo-wasm-code-wasm-wasi.wasm") },
-                    preopenedDirectory = preopenedDirectory
-                )
+                    preopenedDirectory = preopenedDirectory,
+                ),
             )
         }
     }
@@ -80,9 +80,17 @@ dependencies {
     add("wasmBinary", project(":wasm-code"))
 }
 
+tasks.withType<JavaExec>().configureEach {
+    jvmArgs(
+        "-XX:+HeapDumpOnOutOfMemoryError",
+        "-XX:MaxMetaspaceSize=128M",
+        "-Xmx4G",
+    )
+}
+
 private class NativeExecutableArgumentProvider(
     private val wasmBinary: Provider<RegularFile>,
-    private val preopenedDirectory: Provider<Directory>
+    private val preopenedDirectory: Provider<Directory>,
 ) : CommandLineArgumentProvider {
     override fun asArguments(): List<String> = listOf(
         wasmBinary.get().asFile.absolutePath,
