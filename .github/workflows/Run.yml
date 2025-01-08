@@ -31,7 +31,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Assemble run
-        run: ./gradlew build chasm-runner:jvmRun chasm-runner:runReleaseExecutableLinuxX64
+        run: ./gradlew chasm-runner:jvmRun chasm-runner:runReleaseExecutableLinuxX64
 
   run-macos:
     name: Run tests on MacOS X64
@@ -51,7 +51,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Assemble run
-        run: ./gradlew build chasm-runner:jvmRun chasm-runner:runReleaseExecutableMacosX64
+        run: ./gradlew chasm-runner:jvmRun chasm-runner:runReleaseExecutableMacosX64
 
   run-windows:
     name: Run tests on Windows
@@ -72,4 +72,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Assemble run
-        run: ./gradlew build chasm-runner:jvmRun chasm-runner:runReleaseExecutableMingwX64
+        run: ./gradlew chasm-runner:jvmRun chasm-runner:runReleaseExecutableMingwX64
