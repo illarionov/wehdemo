@@ -53,12 +53,15 @@ kotlin {
     targets.withType<KotlinNativeTarget> {
         binaries.executable {
             entryPoint = "at.released.weh.example.chasm.runner.main"
-            runTask?.argumentProviders?.add(
-                NativeExecutableArgumentProvider(
-                    wasmBinary = wasmBinaryDir.map { it.file("wehdemo-wasm-code-wasm-wasi.wasm") },
-                    preopenedDirectory = preopenedDirectory,
-                ),
-            )
+            runTask?.apply {
+                argumentProviders.add(
+                    NativeExecutableArgumentProvider(
+                        wasmBinary = wasmBinaryDir.map { it.file("wehdemo-wasm-code-wasm-wasi.wasm") },
+                        preopenedDirectory = preopenedDirectory,
+                    ),
+                )
+                dependsOn(aggregateBinariesTask)
+            }
         }
     }
 
