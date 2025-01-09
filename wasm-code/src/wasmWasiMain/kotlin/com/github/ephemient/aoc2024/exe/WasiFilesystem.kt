@@ -110,9 +110,9 @@ internal fun readFile(path: String): ByteArray {
                         errno = fdPread(fd, iovsPtr.address, 1, offset.toLong(), sizePtr.address)
                     } while (errno == 6) // errno.again
                     check(errno == 0) { "fd_pread: $errno" }
-                    val size = sizePtr.loadLong().toULong()
-                    check(size <= bufsiz.toULong()) { "fd_read: $size > $bufsiz" }
-                    if (size == 0UL) break
+                    val size = sizePtr.loadInt().toUInt()
+                    check(size <= bufsiz.toUInt()) { "fd_read: $size > $bufsiz" }
+                    if (size == 0U) break
                     add(bufferPtr to size.toInt())
                     offset += size
                     bufsiz = BUFSIZ
