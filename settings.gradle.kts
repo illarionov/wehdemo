@@ -1,13 +1,6 @@
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        maven {
-            name = "PixnewsMaven"
-            setUrl("https://maven.pixnews.ru")
-            mavenContent {
-                includeGroup("at.released.weh")
-            }
-        }
     }
 }
 
