@@ -1,15 +1,10 @@
-import com.github.ephemient.aoc2024.exe.ephemientAoc2024Main
-
 suspend fun main() {
-    println("Hello from Kotlin via WASI")
+    println("test")
     try {
-        monotonicTimeSample()
-        ephemientAoc2024Main()
+        try { error("Test exception") } catch (ise: RuntimeException) { }
+        test()
     } catch (ex: Throwable) {
-        println("\nUncaught exception:\n${ex.stackTraceToString()}")
     }
 }
 
-// We need it to run WasmEdge with the _initialize function
-@WasmExport
-fun dummy() {}
+suspend fun test() {}

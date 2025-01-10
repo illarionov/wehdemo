@@ -1,6 +1,7 @@
 @file:Suppress("OPT_IN_USAGE", "UnstableApiUsage")
 
 import org.jetbrains.kotlin.gradle.targets.js.binaryen.BinaryenRootExtension
+import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode.DEVELOPMENT
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode.PRODUCTION
 
 plugins {
@@ -24,18 +25,12 @@ kotlin {
         binaries.executable().let { wasmBinaries ->
             // Add generated WASM binary as outgoing artifact
             wasmBinaryConfiguration.get().outgoing {
-                wasmBinaries.filter { it.mode == PRODUCTION }.forEach { binary ->
+                wasmBinaries.filter { it.mode == DEVELOPMENT }.forEach { binary ->
                     val wasmFilename = binary.mainFileName.map { it.replaceAfterLast(".", "wasm") }
                     val wasmFile = binary.linkTask.flatMap { it.destinationDirectory.file(wasmFilename) }
                     artifact(wasmFile)
                 }
             }
-        }
-    }
-
-    sourceSets {
-        commonMain.dependencies {
-            implementation(libs.kotlinx.coroutines)
         }
     }
 }
