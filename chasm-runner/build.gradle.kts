@@ -71,7 +71,7 @@ kotlin {
             implementation(libs.weh.chasm.wasip1)
         }
         jvmMain {
-            resources.srcDir(aggregateBinariesTask)
+            resources.srcDir(files(wasmBinaryDir).builtBy(aggregateBinariesTask))
         }
         nativeMain.dependencies {
             implementation(libs.kotlinx.io)
