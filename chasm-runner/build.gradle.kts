@@ -46,9 +46,10 @@ kotlin {
     linuxX64()
     macosArm64()
     macosX64()
-    mingwX64 {
-        binaries.all { linkerOpts("-lntdll") }
-    }
+//  Mingw target is not yet in Chasm
+//  mingwX64 {
+//      binaries.all { linkerOpts("-lntdll") }
+//  }
 
     targets.withType<KotlinNativeTarget> {
         binaries.executable {
@@ -87,7 +88,7 @@ tasks.withType<JavaExec>().configureEach {
     jvmArgs(
         "-XX:+HeapDumpOnOutOfMemoryError",
         "-XX:MaxMetaspaceSize=128M",
-        "-Xmx4G",
+        "-Xmx8G",
     )
 }
 
