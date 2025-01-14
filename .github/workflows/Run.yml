@@ -3,12 +3,8 @@ name: run
 on:
   push:
     branches:
-      - 'main'
+      - 'oom'
   workflow_dispatch:
-
-env:
-  GRADLE_OPTS: >-
-    -Dorg.gradle.jvmargs="-Xmx3G -XX:MaxMetaspaceSize=1G -XX:SoftRefLRUPolicyMSPerMB=10 -XX:+UseParallelGC"
 
 jobs:
   run-linux:
@@ -31,24 +27,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Assemble run
-        run: ./gradlew chasm-runner:jvmRun chasm-runner:runReleaseExecutableLinuxX64
-
-  run-macos:
-    name: Run tests on MacOS X64
-    runs-on: macos-13
-
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'corretto'
-          java-version: '23'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Assemble run
-        run: ./gradlew chasm-runner:jvmRun chasm-runner:runReleaseExecutableMacosX64
+        run: ./gradlew chasm-runner:jvmRun

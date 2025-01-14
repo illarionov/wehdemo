@@ -88,7 +88,7 @@ tasks.withType<JavaExec>().configureEach {
     jvmArgs(
         "-XX:+HeapDumpOnOutOfMemoryError",
         "-XX:MaxMetaspaceSize=128M",
-        "-Xmx8G",
+        "-Xmx4G",
     )
 }
 
