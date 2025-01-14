@@ -25,7 +25,7 @@ kotlin {
         binaries.executable().let { wasmBinaries ->
             // Add generated WASM binary as outgoing artifact
             wasmBinaryConfiguration.get().outgoing {
-                wasmBinaries.filter { it.mode == DEVELOPMENT }.forEach { binary ->
+                wasmBinaries.filter { it.mode == PRODUCTION }.forEach { binary ->
                     val wasmFilename = binary.mainFileName.map { it.replaceAfterLast(".", "wasm") }
                     val wasmFile = binary.linkTask.flatMap { it.destinationDirectory.file(wasmFilename) }
                     artifact(wasmFile)

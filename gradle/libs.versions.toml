@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.1.0"
-chasm = "0.9.3"
+chasm = "0.9.4"
 
 [libraries]
 chasm = { group = "io.github.charlietap.chasm", name = "chasm", version.ref = "chasm" }

@@ -1,5 +1,9 @@
+import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
+import kotlin.wasm.unsafe.withScopedMemoryAllocator
+
+@OptIn(UnsafeWasmMemoryApi::class)
 suspend fun main() {
-    println("test")
+    withScopedMemoryAllocator { }
     try {
         try { error("Test exception") } catch (ise: RuntimeException) { }
         test()
