@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.1.0"
-chasm = "0.9.4"
+chasm = "0.9.41"
 kotlinx-coroutines = "1.10.1"
 kotlinx-io = "0.6.0"
 wasi-emscripten-host = "0.2"
