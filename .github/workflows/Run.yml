@@ -11,8 +11,8 @@ env:
     -Dorg.gradle.jvmargs="-Xmx3G -XX:MaxMetaspaceSize=1G -XX:SoftRefLRUPolicyMSPerMB=10 -XX:+UseParallelGC"
 
 jobs:
-  run-linux:
-    name: Run on Linux
+  build-native-linux:
+    name: Build native libraries
     runs-on: ubuntu-latest
 
     steps:
@@ -30,11 +30,82 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Assemble run
-        run: ./gradlew chasm-runner:jvmRun chasm-runner:runReleaseExecutableLinuxX64
+      - name: Assemble
+        run: ./gradlew chasm-runner:assemble
+
+      - name: Upload native binaries for run-linux jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-binaries
+          path: chasm-runner/build/bin/
+
+  run-linux-x64:
+    name: Run on Linux X64
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '23'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Assemble
+        run: ./gradlew chasm-runner:jvmMainClasses chasm-runner:linkReleaseExecutableLinuxX64
+
+      - name: Run on JVM
+        run: ./gradlew chasm-runner:jvmRun
+
+      - name: Run Release Executable Linux X64
+        run: ./gradlew chasm-runner:runReleaseExecutableLinuxX64
+
+  run-linux-arm64:
+    name: Run on Linux Arm64
+    needs: build-native-linux
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Download native binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: native-binaries
+          path: binaries
+
+      - name: Assemble
+        run: ./gradlew chasm-runner:jvmMainClasses chasm-runner:copyWasmBinaries
+
+      - name: Run release executable Arm64
+        run: >-
+          chmod 775 binaries/linuxArm64/releaseExecutable/chasm-runner.kexe &&
+          time binaries/linuxArm64/releaseExecutable/chasm-runner.kexe
+          chasm-runner/build/wasmBinary/wehdemo-wasm-code-wasm-wasi.wasm
+          chasm-runner/preopened_sample
+
+      - name: Run on JVM
+        run: ./gradlew chasm-runner:jvmRun
 
   run-macos:
-    name: Run tests on MacOS X64
+    name: Run on MacOS X64
     runs-on: macos-13
 
     steps:
