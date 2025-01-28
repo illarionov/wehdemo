@@ -93,6 +93,9 @@ kotlin {
         }
         jvmMain {
             resources.srcDir(files(wasmBinaryDir).builtBy(aggregateBinariesTask))
+            dependencies {
+                implementation(libs.async.profiler)
+            }
         }
         nativeMain.dependencies {
             implementation(libs.kotlinx.io)
