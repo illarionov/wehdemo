@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.1.0"
+kotlin = "2.1.10"
 chasm = "0.9.42"
 kotlinx-coroutines = "1.10.1"
 kotlinx-io = "0.6.0"
