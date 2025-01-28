@@ -1,11 +1,13 @@
 [versions]
 kotlin = "2.1.10"
+asyncprofiler = "3.0"
 chasm = "0.9.42"
 kotlinx-coroutines = "1.10.1"
 kotlinx-io = "0.6.0"
 wasi-emscripten-host = "0.2"
 
 [libraries]
+async-profiler = { group = "tools.profiler", name = "async-profiler", version.ref = "asyncprofiler" }
 chasm = { group = "io.github.charlietap.chasm", name = "chasm", version.ref = "chasm" }
 kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io" }
