@@ -64,6 +64,9 @@ kotlin {
                 dependsOn(aggregateBinariesTask)
             }
         }
+        compilerOptions {
+            freeCompilerArgs.add("-Xbinary=preCodegenInlineThreshold=40")
+        }
     }
 
     sourceSets {
