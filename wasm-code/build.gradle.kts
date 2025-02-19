@@ -41,7 +41,7 @@ kotlin {
 }
 
 rootProject.configure<BinaryenRootExtension> {
-    version = "121"
+    version = "122"
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile>().configureEach {
