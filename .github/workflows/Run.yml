@@ -11,122 +11,15 @@ env:
     -Dorg.gradle.jvmargs="-Xmx3G -XX:MaxMetaspaceSize=1G -XX:SoftRefLRUPolicyMSPerMB=10 -XX:+UseParallelGC"
 
 jobs:
-  build-native-linux:
-    name: Build native libraries
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Install required software
-        run: sudo apt install moreutils
-
-      - name: Checkout sources
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'corretto'
-          java-version: '23'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Assemble
-        run: ./gradlew chasm-runner:assemble
-
-      - name: Upload native binaries for run-linux jobs
-        uses: actions/upload-artifact@v4
-        with:
-          name: native-binaries
-          path: chasm-runner/build/bin/
-
-  run-linux-x64:
-    name: Run on Linux X64
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Install required software
-        run: sudo apt install moreutils
-
-      - name: Checkout sources
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'corretto'
-          java-version: '23'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Assemble
-        run: >-
-          ./gradlew chasm-runner:jvmMainClasses chasm-runner:linkReleaseExecutableLinuxX64 chasm-runner:copyWasmBinaries
-
-      - name: Run on JVM
-        run: ./gradlew chasm-runner:jvmRun | ts -s -m "%.s"
-
-      - name: Run release executable Linux X64
-        run: >-
-          time chasm-runner/build/bin/linuxX64/releaseExecutable/chasm-runner.kexe
-          chasm-runner/build/wasmBinary/wehdemo-wasm-code-wasm-wasi.wasm
-          chasm-runner/preopened_sample
-
-  run-linux-arm64:
-    name: Run on Linux Arm64
-    needs: build-native-linux
-    runs-on: ubuntu-24.04-arm
-
-    steps:
-      - name: Install required software
-        run: sudo apt install moreutils
-
-      - name: Checkout sources
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Download native binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: native-binaries
-          path: binaries
-
-      - name: Assemble
-        run: ./gradlew chasm-runner:jvmMainClasses chasm-runner:copyWasmBinaries
-
-      - name: Run on JVM
-        run: ./gradlew chasm-runner:jvmRun | ts -s -m "%.s"
-
-      - name: Run release executable Arm64
-        run: >-
-          chmod 775 binaries/linuxArm64/releaseExecutable/chasm-runner.kexe &&
-          time binaries/linuxArm64/releaseExecutable/chasm-runner.kexe
-          chasm-runner/build/wasmBinary/wehdemo-wasm-code-wasm-wasi.wasm
-          chasm-runner/preopened_sample
-
-  run-macos:
-    name: Run on MacOS X64
+  build-binaries:
+    name: Build binaries
     runs-on: macos-13
 
     steps:
-      - name: Install required software
-        run: brew install moreutils
-
       - name: Checkout sources
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -137,15 +30,69 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Assemble
+      - name: Build
         run: >-
-          ./gradlew chasm-runner:jvmMainClasses chasm-runner:linkReleaseExecutableMacosX64 chasm-runner:copyWasmBinaries
+          ./gradlew jvmDistZip linkReleaseExecutableLinuxX64 linkReleaseExecutableLinuxArm64
+          linkReleaseExecutableMacosX64 linkReleaseExecutableMacosArm64
 
-      - name: Run on JVM Macos X64
-        run: ./gradlew chasm-runner:jvmRun | ts -s -m "%.s"
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: |
+            chasm-runner/build/bin/
+            chasm-runner/build/distributions/wehdemo-jvm.zip
+            chasm-runner/build/wasmBinary/
+            chasm-runner/preopened_sample
 
-      - name: Run release executable Macos X64
+
+  run:
+    strategy:
+      matrix:
+        os: [macos-13, macos-latest, ubuntu-latest, ubuntu-24.04-arm]
+        include:
+          - os: macos-13
+            target: macosX64
+          - os: macos-latest
+            target: macosArm64
+          - os: ubuntu-latest
+            target: linuxX64
+          - os: ubuntu-24.04-arm
+            target: linuxArm64
+      fail-fast: false
+    name: Run on ${{ matrix.os }}
+    needs: build-binaries
+    runs-on: matrix.os
+
+    steps:
+      - name: Install required software
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt install moreutils
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install moreutils
+          fi
+        shell: bash
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '23'
+
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+
+      - run: unzip build/distributions/wehdemo-jvm.zip
+
+      - name: Run on JVM ${{ matrix.os }}
+        run: time wehdemo-jvm/bin/wehdemo | ts -s -m "%.s"
+
+      - name: Run release executable ${{ env.RUNNER_OS }} ${{ env.RUNNER_ARCH }}
         run: >-
-          time chasm-runner/build/bin/MacosX64/releaseExecutable/chasm-runner.kexe
-          chasm-runner/build/wasmBinary/wehdemo-wasm-code-wasm-wasi.wasm
-          chasm-runner/preopened_sample
+          chmod 775 build/bin/${{ matrix.target }}/releaseExecutable/chasm-runner.kexe &&
+          time build/bin/${{ matrix.target }}/releaseExecutable/chasm-runner.kexe
+          build/wasmBinary/wehdemo-wasm-code-wasm-wasi.wasm
+          preopened_sample

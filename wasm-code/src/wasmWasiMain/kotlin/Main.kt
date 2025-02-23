@@ -1,10 +1,15 @@
 import com.github.ephemient.aoc2024.exe.ephemientAoc2024Main
+import kotlin.time.measureTime
 
 suspend fun main() {
     println("Hello from Kotlin via WASI")
     try {
         monotonicTimeSample()
-        ephemientAoc2024Main()
+        measureTime {
+            ephemientAoc2024Main()
+        }.also {
+            println("ephemientAoc2024Main() took $it")
+        }
     } catch (ex: Throwable) {
         println("\nUncaught exception:\n${ex.stackTraceToString()}")
     }
