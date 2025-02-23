@@ -16,6 +16,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install required software
+        run: sudo apt install moreutils
+
       - name: Checkout sources
         uses: actions/checkout@v4
         with:
@@ -44,6 +47,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install required software
+        run: sudo apt install moreutils
+
       - name: Checkout sources
         uses: actions/checkout@v4
         with:
@@ -59,13 +65,17 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Assemble
-        run: ./gradlew chasm-runner:jvmMainClasses chasm-runner:linkReleaseExecutableLinuxX64
+        run: >-
+          ./gradlew chasm-runner:jvmMainClasses chasm-runner:linkReleaseExecutableLinuxX64 chasm-runner:copyWasmBinaries
 
       - name: Run on JVM
-        run: ./gradlew chasm-runner:jvmRun
+        run: ./gradlew chasm-runner:jvmRun | ts -s -m "%.s"
 
-      - name: Run Release Executable Linux X64
-        run: ./gradlew chasm-runner:runReleaseExecutableLinuxX64
+      - name: Run release executable Linux X64
+        run: >-
+          time chasm-runner/build/bin/linuxX64/releaseExecutable/chasm-runner.kexe
+          chasm-runner/build/wasmBinary/wehdemo-wasm-code-wasm-wasi.wasm
+          chasm-runner/preopened_sample
 
   run-linux-arm64:
     name: Run on Linux Arm64
@@ -73,6 +83,9 @@ jobs:
     runs-on: ubuntu-24.04-arm
 
     steps:
+      - name: Install required software
+        run: sudo apt install moreutils
+
       - name: Checkout sources
         uses: actions/checkout@v4
 
@@ -94,6 +107,9 @@ jobs:
       - name: Assemble
         run: ./gradlew chasm-runner:jvmMainClasses chasm-runner:copyWasmBinaries
 
+      - name: Run on JVM
+        run: ./gradlew chasm-runner:jvmRun | ts -s -m "%.s"
+
       - name: Run release executable Arm64
         run: >-
           chmod 775 binaries/linuxArm64/releaseExecutable/chasm-runner.kexe &&
@@ -101,14 +117,14 @@ jobs:
           chasm-runner/build/wasmBinary/wehdemo-wasm-code-wasm-wasi.wasm
           chasm-runner/preopened_sample
 
-      - name: Run on JVM
-        run: ./gradlew chasm-runner:jvmRun
-
   run-macos:
     name: Run on MacOS X64
     runs-on: macos-13
 
     steps:
+      - name: Install required software
+        run: brew install moreutils
+
       - name: Checkout sources
         uses: actions/checkout@v4
 
@@ -121,5 +137,15 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Assemble run
-        run: ./gradlew chasm-runner:jvmRun chasm-runner:runReleaseExecutableMacosX64
+      - name: Assemble
+        run: >-
+          ./gradlew chasm-runner:jvmMainClasses chasm-runner:linkReleaseExecutableMacosX64 chasm-runner:copyWasmBinaries
+
+      - name: Run on JVM Macos X64
+        run: ./gradlew chasm-runner:jvmRun | ts -s -m "%.s"
+
+      - name: Run release executable Macos X64
+        run: >-
+          time chasm-runner/build/bin/MacosX64/releaseExecutable/chasm-runner.kexe
+          chasm-runner/build/wasmBinary/wehdemo-wasm-code-wasm-wasi.wasm
+          chasm-runner/preopened_sample
