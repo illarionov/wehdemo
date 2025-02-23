@@ -8,7 +8,11 @@ fun main(args: Array<String>) {
         Thread.currentThread().contextClassLoader.getResource("wehdemo-wasm-code-wasm-wasi.wasm"),
     ).openStream().use(InputStream::readAllBytes)
 
-    val preopenedDirectory = if (args.isNotEmpty()) args[0] else "."
+    val preopenedDirectory = if (args.isNotEmpty()) {
+        args[0]
+    } else {
+        System.getProperty("weh.preopened", ".")
+    }
 
     executeWebAssemblyCode(
         wasmBinary = wasmBinary,

@@ -32,10 +32,27 @@ val aggregateBinariesTask = tasks.register<Sync>("copyWasmBinaries") {
     into(wasmBinaryDir)
 }
 
+private val jvmMainClass = "at.released.weh.example.chasm.runner.JvmMainKt"
+private val jvmAppArgs = listOf(
+    "-XX:+HeapDumpOnOutOfMemoryError",
+    "-XX:MaxMetaspaceSize=64M",
+    "-Xmx512M",
+)
+
 kotlin {
     jvm {
+        binaries {
+            executable {
+                applicationName = "wehdemo"
+                mainClass = jvmMainClass
+                applicationDefaultJvmArgs = jvmAppArgs + "-Dweh.preopened=<APP_HOME>preopened_embedded"
+                applicationDistribution.from(layout.projectDirectory.dir("preopened_sample")) {
+                    into("preopened_embedded")
+                }
+            }
+        }
         mainRun {
-            mainClass = "at.released.weh.example.chasm.runner.JvmMainKt"
+            mainClass = jvmMainClass
             args(preopenedDirectory.map { it.asFile.absolutePath }.get())
         }
     }
@@ -83,16 +100,19 @@ kotlin {
     }
 }
 
-dependencies {
-    add("wasmBinary", project(":wasm-code"))
+tasks.withType<JavaExec>().configureEach {
+    jvmArgs(jvmAppArgs)
 }
 
-tasks.withType<JavaExec>().configureEach {
-    jvmArgs(
-        "-XX:+HeapDumpOnOutOfMemoryError",
-        "-XX:MaxMetaspaceSize=64M",
-        "-Xmx512M",
-    )
+tasks.withType<CreateStartScripts>().configureEach {
+    doLast {
+        unixScript.let { it.writeText(it.readText().replace("<APP_HOME>", "'\"\$APP_HOME\"'/")) }
+        windowsScript.let { it.writeText(it.readText().replace("<APP_HOME>", "%APP_HOME%\\")) }
+    }
+}
+
+dependencies {
+    add("wasmBinary", project(":wasm-code"))
 }
 
 private class NativeExecutableArgumentProvider(
