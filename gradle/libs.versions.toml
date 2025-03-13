@@ -1,9 +1,9 @@
 [versions]
 kotlin = "2.1.20-RC2"
-chasm = "0.9.53"
+chasm = "0.9.61"
 kotlinx-coroutines = "1.10.1"
 kotlinx-io = "0.7.0"
-wasi-emscripten-host = "0.3"
+wasi-emscripten-host = "0.4"
 
 [libraries]
 chasm = { group = "io.github.charlietap.chasm", name = "chasm", version.ref = "chasm" }
