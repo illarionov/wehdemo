@@ -1,10 +1,10 @@
 [versions]
 asyncprofiler = "3.0"
-kotlin = "2.1.20-RC"
-chasm = "0.9.53"
+kotlin = "2.1.20-RC2"
+chasm = "0.9.61"
 kotlinx-coroutines = "1.10.1"
-kotlinx-io = "0.6.0"
-wasi-emscripten-host = "0.3"
+kotlinx-io = "0.7.0"
+wasi-emscripten-host = "0.4"
 
 [libraries]
 async-profiler = { group = "tools.profiler", name = "async-profiler", version.ref = "asyncprofiler" }
